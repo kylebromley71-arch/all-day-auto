@@ -145,6 +145,84 @@
                 </div>
             </div>
         </fieldset>
+        const decodeBtn = document.getElementById('decodeBtn');
+const vinInput = document.getElementById('vinInput');
+const vinFeedback = document.getElementById('vinFeedback');
+
+decodeBtn.addEventListener('click', async () => {
+    const vin = vinInput.value.trim();
+    if (vin.length < 17) {
+        vinFeedback.innerText = "Please enter a full 17-digit VIN.";
+        return;
+    }
+
+    vinFeedback.innerText = "Decoding...";
+    
+    try {
+        // Fetch decoded values from official NHTSA source
+        const response = await fetch(`${BASE_URL}/DecodeVinValues/${vin}?format=json`);
+        const data = await response.json();
+        const vehicle = data.Results[0];
+
+        if (vehicle.Make) {
+            // Auto-fill the form fields
+            yearSelect.value = vehicle.ModelYear;
+            
+            // For Make and Model, we manually add the option if it's not in the list yet
+            makeSelect.innerHTML = `<option value="${vehicle.Make}">${vehicle.Make}</option>`;
+            modelSelect.innerHTML = `<option value="${vehicle.Model}">${vehicle.Model}</option>`;
+            modelSelect.disabled = false;
+            
+            // Auto-fill Trim and Engine
+            document.getElementById('trimInput').value = vehicle.Trim || "";
+            document.getElementById('engineInput').value = `${vehicle.DisplacementL}L ${vehicle.EngineCylinders || ""} Cyl` || "";
+            
+            vinFeedback.style.color = "green";
+            vinFeedback.innerText = "Vehicle Found!";
+        } else {
+            vinFeedback.innerText = "VIN not found. Please enter manually.";
+        }
+    } catch (e) {
+        vinFeedback.innerText = "Error connecting to NHTSA database.";
+    }
+});
+        <fieldset>
+    <legend>Vehicle Specs</legend>
+    
+    <div class="vin-section" style="margin-bottom: 20px;">
+        <label for="vinInput">Quick Fill with VIN</label>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="vinInput" placeholder="Enter 17-digit VIN" maxlength="17" style="flex: 1;">
+            <button type="button" id="decodeBtn" style="width: auto; padding: 10px 20px; background: var(--dark-charcoal); color: white; border-radius: 4px; cursor: pointer;">Decode</button>
+        </div>
+        <small id="vinFeedback" style="color: var(--vintage-red);"></small>
+    </div>
+
+    <div class="form-grid">
+        <div>
+            <label>Year</label>
+            <select id="year" name="Year" required><option value="">Select Year</option></select>
+        </div>
+        <div>
+            <label>Make</label>
+            <select id="make" name="Make" required><option value="">Select Make</option></select>
+        </div>
+        <div>
+            <label>Model</label>
+            <select id="model" name="Model" required disabled><option value="">Select Model</option></select>
+        </div>
+        <div>
+            <label>Trim / Style</label>
+            <input list="trims" name="Trim" id="trimInput" placeholder="e.g. Lariat, SE">
+            <datalist id="trims"></datalist>
+        </div>
+        <div class="full-width">
+            <label>Engine Size</label>
+            <input list="engines" name="Engine" id="engineInput" placeholder="Engine info will appear here">
+            <datalist id="engines"></datalist>
+        </div>
+    </div>
+</fieldset>
 
         <fieldset>
             <legend>Issue Description</legend>
@@ -197,4 +275,5 @@
 </script>
 
 </body>
+
 </html>
