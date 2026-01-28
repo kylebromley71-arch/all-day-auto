@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Intake | All Day Auto Garage</title>
+    <style>
+        :root {
+            --vintage-red: #A33B2E; 
+            --vintage-cream: #F4E9D5;
+            --dark-charcoal: #2D2D2D;
+            --input-border: #BBBBBB;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #E5E5E5;
+            margin: 0;
+            padding: 20px;
+            color: var(--dark-charcoal);
+        }
+
+        .container {
+            max-width: 700px;
+            background: #FFFFFF;
+            margin: 20px auto;
+            padding: 40px;
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-top: 12px solid var(--vintage-red);
+        }
+
+        .logo-area { text-align: center; margin-bottom: 30px; }
+        .logo-area img { max-width: 220px; height: auto; }
+
+        h2 { 
+            text-align: center; 
+            color: var(--vintage-red); 
+            text-transform: uppercase; 
+            font-size: 24px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--vintage-cream);
+            padding-bottom: 10px;
+        }
+
+        fieldset {
+            border: 1px solid #EEE;
+            background-color: #FAFAFA;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            padding: 20px;
+        }
+
+        legend { font-weight: 800; color: var(--vintage-red); text-transform: uppercase; font-size: 0.85em; letter-spacing: 1px; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .full-width { grid-column: span 2; }
+
+        label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #555; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1.5px solid var(--input-border);
+            border-radius: 4px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus { border-color: var(--vintage-red); outline: none; }
+
+        .submit-btn {
+            width: 100%;
+            padding: 20px;
+            background-color: var(--vintage-red);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 20px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #7A2C22;
+            transition: all 0.2s ease;
+        }
+
+        .submit-btn:hover { background-color: #8E3328; transform: translateY(-2px); box-shadow: 0 6px 0 #7A2C22; }
+        .submit-btn:active { transform: translateY(2px); box-shadow: 0 0px 0 #7A2C22; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo-area">
+        <img src="5491.png" alt="All Day Auto Logo">
+    </div>
+
+    <h2>Vehicle Service Request</h2>
+
+    <form action="https://formspree.io/f/YOUR_ID_HERE" method="POST">
+        
+        <fieldset>
+            <legend>Contact Info</legend>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="Customer_Name" required placeholder="Full Name">
+            </div>
+            <div class="form-grid" style="margin-top:15px;">
+                <div>
+                    <label>Phone</label>
+                    <input type="tel" name="Phone" required placeholder="(555) 000-0000">
+                </div>
+                <div>
+                    <label>Email</label>
+                    <input type="email" name="Email" required placeholder="name@email.com">
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Vehicle Specs</legend>
+            <div class="form-grid">
+                <div>
+                    <label>Year</label>
+                    <select id="year" name="Year" required><option value="">Select Year</option></select>
+                </div>
+                <div>
+                    <label>Make</label>
+                    <select id="make" name="Make" required><option value="">Select Make</option></select>
+                </div>
+                <div>
+                    <label>Model</label>
+                    <select id="model" name="Model" required disabled><option value="">Select Model</option></select>
+                </div>
+                <div>
+                    <label>Trim / Style</label>
+                    <input list="trims" name="Trim" id="trimInput" placeholder="e.g. Lariat, SE, LX">
+                    <datalist id="trims"></datalist>
+                </div>
+                <div class="full-width">
+                    <label>Engine Size</label>
+                    <input list="engines" name="Engine" id="engineInput" placeholder="e.g. 5.0L V8, 2.4L 4-Cyl">
+                    <datalist id="engines"></datalist>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Issue Description</legend>
+            <textarea name="Message" rows="4" placeholder="Describe what's going on with the vehicle..."></textarea>
+        </fieldset>
+
+        <button type="submit" class="submit-btn">Submit Request</button>
+    </form>
+</div>
+
+<script>
+    const BASE_URL = "https://vpic.nhtsa.dot.gov/api/vehicles";
+    const yearSelect = document.getElementById('year');
+    const makeSelect = document.getElementById('make');
+    const modelSelect = document.getElementById('model');
+
+    for (let i = new Date().getFullYear() + 1; i >= 1990; i--) {
+        yearSelect.add(new Option(i, i));
+    }
+
+    async function loadMakes() {
+        try {
+            const response = await fetch(`${BASE_URL}/GetAllMakes?format=json`);
+            const data = await response.json();
+            const sorted = data.Results.sort((a, b) => a.Make_Name.localeCompare(b.Make_Name));
+            sorted.forEach(m => makeSelect.add(new Option(m.Make_Name, m.Make_Name)));
+        } catch (e) { console.error("Error loading makes"); }
+    }
+    loadMakes();
+
+    makeSelect.addEventListener('change', updateModels);
+    yearSelect.addEventListener('change', updateModels);
+
+    async function updateModels() {
+        const year = yearSelect.value;
+        const make = makeSelect.value;
+        if (!year || !make) return;
+
+        modelSelect.innerHTML = '<option>Loading...</option>';
+        modelSelect.disabled = true;
+
+        try {
+            const response = await fetch(`${BASE_URL}/GetModelsForMakeYear/make/${make}/modelyear/${year}?format=json`);
+            const data = await response.json();
+            modelSelect.innerHTML = '<option value="">Select Model</option>';
+            modelSelect.disabled = false;
+            data.Results.forEach(m => modelSelect.add(new Option(m.Model_Name, m.Model_Name)));
+        } catch (e) { modelSelect.innerHTML = '<option>Error loading models</option>'; }
+    }
+</script>
+
+</body>
+</html>
